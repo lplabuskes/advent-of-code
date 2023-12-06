@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-
+#include <chrono>
 
 struct CubeCount
 {
@@ -78,7 +78,7 @@ int process_game(std::string line)
     return min_required.power();
 }
 
-int main()
+int solution()
 {
     std::ifstream file("input.txt");
     int sum = 0;
@@ -93,5 +93,23 @@ int main()
         int res = process_game(line);
         sum += process_game(line);
     }
-    std::cout << sum << std::endl;
+    return sum;
+}
+
+int main()
+{
+    using namespace std::chrono;
+    int output;
+    int n_iter = 10;
+    unsigned long total_us = 0;
+    for (int i = 0; i < n_iter; i++)
+    {
+        auto start = high_resolution_clock::now();
+        output = solution();
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        total_us += duration.count();
+    }
+    std::cout << output << std::endl;
+    std::cout << total_us/n_iter << " us" << std::endl;
 }

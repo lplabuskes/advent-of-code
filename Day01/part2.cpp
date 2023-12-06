@@ -3,8 +3,9 @@
 #include <string>
 #include <algorithm>
 #include <array>
+#include <chrono>
 
-int main()
+int solution()
 {
     std::string digits[] = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
     std::ifstream file("input.txt");
@@ -55,5 +56,23 @@ int main()
         }
         sum += (10 * first_digit) + last_digit;
     }
-    std::cout << sum << std::endl;
+    return sum;
+}
+
+int main()
+{
+    using namespace std::chrono;
+    int output;
+    int n_iter = 10;
+    unsigned long total_us = 0;
+    for (int i = 0; i < n_iter; i++)
+    {
+        auto start = high_resolution_clock::now();
+        output = solution();
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        total_us += duration.count();
+    }
+    std::cout << output << std::endl;
+    std::cout << total_us/n_iter << " us" << std::endl;
 }

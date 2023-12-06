@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <chrono>
 
 
 typedef unsigned long long ull;
@@ -85,7 +86,7 @@ struct AlmanacProcessor
     }
 };
 
-int main()
+ull solution()
 {
     std::ifstream file("input.txt");
 
@@ -125,5 +126,23 @@ int main()
             min_position = position;
         }
     }
-    std::cout << min_position << std::endl;
+    return min_position;
+}
+
+int main()
+{
+    using namespace std::chrono;
+    ull output;
+    int n_iter = 10;
+    unsigned long total_us = 0;
+    for (int i = 0; i < n_iter; i++)
+    {
+        auto start = high_resolution_clock::now();
+        output = solution();
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        total_us += duration.count();
+    }
+    std::cout << output << std::endl;
+    std::cout << total_us/n_iter << " us" << std::endl;
 }

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
+#include <chrono>
 
 
 std::vector<std::string> split(std::string text, std::string delimeter)
@@ -62,7 +63,7 @@ int score_game(std::string game)
     return score;
 }
 
-int main()
+int solution()
 {
     std::ifstream file("input.txt");
     int sum = 0;
@@ -77,5 +78,23 @@ int main()
         int res = score_game(line);
         sum += res;
     }
-    std::cout << sum << std::endl;
+    return sum;
+}
+
+int main()
+{
+    using namespace std::chrono;
+    int output;
+    int n_iter = 10;
+    unsigned long total_us = 0;
+    for (int i = 0; i < n_iter; i++)
+    {
+        auto start = high_resolution_clock::now();
+        output = solution();
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        total_us += duration.count();
+    }
+    std::cout << output << std::endl;
+    std::cout << total_us/n_iter << " us" << std::endl;
 }
