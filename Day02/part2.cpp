@@ -39,15 +39,15 @@ CubeCount count_draw(std::string text)
     {
         auto temp = split(entry, " ");
         int num = std::stoi(temp[0]);
-        if (temp[1] == "red")
+        if (temp[1][0] == 'r')
         {
             counts.red += num;
         }
-        else if (temp[1] == "green")
+        else if (temp[1][0] == 'g')
         {
             counts.green += num;
         }
-        else if (temp[1] == "blue"){
+        else{
             counts.blue += num;
         }
     }
