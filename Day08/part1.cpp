@@ -1,44 +1,47 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <unordered_map>
-#include <utility>
+#include <cstring>
 #include <chrono>
 
-typedef std::string String;
-typedef std::pair<String, String> StringPair;
+
+inline int16_t node_to_num(char a, char b, char c)
+{
+    return (a-'A')*(26*26) + (b-'A')*(26) + (c-'A')*(1);
+}
 
 int solution()
 {
+    int16_t nodes[2][17575];
+    std::memset(nodes, -1, sizeof(nodes));
     std::ifstream file("input.txt");
 
-    String directions;
+    std::string directions;
     std::getline(file, directions);
     file.ignore(1000, '\n');
 
-    std::unordered_map<String, StringPair> nodes;
     while (file)
     {
-        String line;
+        std::string line;
         std::getline(file, line);
         if (line.length() == 0)
         {
             continue;
         }
-        String key = line.substr(0, 3);
-        String left = line.substr(7, 3);
-        String right = line.substr(12, 3);
-        nodes.insert({key, std::pair<String, String>(left, right)});
+        int16_t key = node_to_num(line[0], line[1], line[2]);
+        int16_t left = node_to_num(line[7], line[8], line[9]);
+        int16_t right = node_to_num(line[12], line[13], line[14]);
+        nodes[0][key] = left;
+        nodes[1][key] = right;
     }
 
-    String node = "AAA";
+    int16_t node = 0;
     int steps = 0;
-    while (node != "ZZZ")
+    while (node != 17575)
     {
-        bool go_left = directions[steps%directions.length()]=='L';
+        int direction = directions[steps%directions.length()]=='L' ? 0 : 1;
         steps++;
-        auto options = nodes.at(node);
-        node = go_left ? options.first : options.second;
+        node = nodes[direction][node];
     }
 
     return steps;
