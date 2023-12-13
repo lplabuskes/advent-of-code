@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <numeric>
 #include <chrono>
 
 
@@ -77,7 +78,7 @@ struct Record
             std::size_t h2 = 0;
             for (int i : r.groups)
             {
-                h2 ^= std::hash<int>{}(i);
+                h2 ^= (std::hash<int>{}(i) + h2<<7 + h2>>2);
             }
             return h1 ^ (h2 << 1);
         }
@@ -89,10 +90,13 @@ struct Record
         {
             return 0;
         }
-        if (cache.find(*this) != cache.end())
+
+        auto cache_loc = cache.find(*this);
+        if (cache_loc != cache.end())
         {
-            return cache.at(*this);
+            return cache_loc->second;
         }
+
         int fail_count = 0, start_from = 0, groups_skip = 0;
         for (int i = 0; i < conditions.length(); i++)
         {
