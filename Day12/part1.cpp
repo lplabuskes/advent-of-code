@@ -26,6 +26,12 @@ std::vector<std::string> split(std::string text, std::string delimeter)
 
 bool valid_record(std::string& record, std::vector<int>& segments)
 {
+    int min_required = std::accumulate(segments.begin(), segments.end(), 0) + segments.size() - 1;
+    if (min_required > 0 && record.length() < min_required)
+    {
+        return false;
+    }
+
     int current_fail_count = 0, segment_idx = 0;
     for (char c : record)
     {
