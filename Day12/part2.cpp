@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <numeric>
+#include <algorithm>
 #include <chrono>
 
 
@@ -138,7 +139,7 @@ struct Record
     std::vector<int> groups;
 };
 
-std::vector<std::string> split(std::string text, std::string delimeter)
+std::vector<std::string> split(const std::string& text, const std::string& delimeter)
 {
     std::vector<std::string> output;
     int index = 0;
@@ -156,6 +157,77 @@ std::vector<std::string> split(std::string text, std::string delimeter)
     return output;
 }
 
+std::string sanitize(std::string& record, std::vector<int>& groups)
+{
+    // std::cout << record << std::endl;
+    bool debug = record=="##.#????.#?##.#????.#?##.#????.#?##.#????.#?##.#????.#";
+    auto substrings = split(record, ".");
+    int smallest_group = *std::min_element(groups.begin(), groups.end());
+
+    auto it = substrings.begin();
+    while (it != substrings.end())
+    {
+        if (it->length() < smallest_group)
+        {
+            substrings.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+
+    while (groups.size() > 0 && (substrings.front().length() < groups.front() || substrings.front().front() == '#'))
+    {
+        if (substrings.front().front() == '#')
+        {
+            if (substrings.front().length() > groups.front())
+            {
+                substrings.front() = substrings.front().substr(groups.front() + 1);
+            }
+            else
+            {
+                substrings.erase(substrings.begin());
+            }
+            groups.erase(groups.begin());
+        }
+        else
+        {
+            substrings.erase(substrings.begin());
+        }
+    }
+    while (groups.size() > 0 && (substrings.back().length() < groups.back() || substrings.back().back() == '#'))
+    {
+        if (substrings.back().back() == '#')
+        {
+            if (substrings.back().length() > groups.back())
+            {
+                substrings.back() = substrings.back().substr(0, substrings.back().length()-groups.back()-1);
+            }
+            else
+            {
+                substrings.pop_back();
+            }
+            groups.pop_back();
+        }
+        else
+        {
+            substrings.pop_back();
+        }
+    }
+
+    if (substrings.size() == 0)
+    {
+        return ".";
+    }
+
+    std::string sanitized = substrings[0];
+    for (auto it = substrings.begin()+1; it != substrings.end(); it++)
+    {
+        sanitized += "."+*it;
+    }
+    return sanitized;
+}
 
 unsigned long long solution()
 {
@@ -189,6 +261,7 @@ unsigned long long solution()
                 unfolded_segments.push_back(seg);
             }
         }
+        unfolded_record = sanitize(unfolded_record, unfolded_segments);
         unsigned long long result = Record(unfolded_record, unfolded_segments).count_possibilities(cache);
         sum += result;
     }
