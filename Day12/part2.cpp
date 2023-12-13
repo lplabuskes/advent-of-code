@@ -12,6 +12,11 @@ struct Record
     Record(std::string conditions, std::vector<int> groups): conditions(conditions), groups(groups){};
     bool valid()
     {
+        int min_required = std::accumulate(groups.begin(), groups.end(), 0) + groups.size() - 1;
+        if (min_required > 0 && conditions.length() < min_required)
+        {
+            return false;
+        }
         int current_fail_count = 0, group_idx = 0;
         for (char c : conditions)
         {
@@ -85,7 +90,7 @@ struct Record
     };
 
     unsigned long long count_possibilities(std::unordered_map<Record, unsigned long long, Record::HashFunction>& cache)
-    {
+    {        
         if (!valid())
         {
             return 0;
