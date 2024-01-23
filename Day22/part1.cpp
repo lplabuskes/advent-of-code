@@ -1,0 +1,154 @@
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <map>
+#include <algorithm>
+#include <chrono>
+
+
+std::vector<std::string> split(const std::string& text, const std::string& delimeter)
+{
+    std::vector<std::string> output;
+    int index = 0;
+    while (index < text.length())
+    {
+        int position = text.find(delimeter, index);
+        if (position == -1)
+        {
+            break;
+        }
+        output.push_back(text.substr(index, position - index));
+        index = position + delimeter.length();
+    }
+    output.push_back(text.substr(index));
+    return output;
+}
+
+struct Block
+{
+    Block(const std::string& input, int id): id(id)
+    {
+        auto tmp = split(input, "~");
+        auto lhs = split(tmp[0], ",");
+        auto rhs = split(tmp[1], ",");
+        // For the problem input lhs <= rhs, so no need for comparison
+        xmin = std::stoi(lhs[0]);
+        ymin = std::stoi(lhs[1]);
+        zmin = std::stoi(lhs[2]);
+        xmax = std::stoi(rhs[0]);
+        ymax = std::stoi(rhs[1]);
+        zmax = std::stoi(rhs[2]);
+    }
+    bool operator<(const Block& b) const{return zmin < b.zmin;};
+
+    int xmin = 0, ymin = 0, zmin = 0;
+    int xmax = 0, ymax = 0, zmax = 0;
+    int id;
+    std::vector<int> supporters;
+};
+
+int solution()
+{
+    std::ifstream file("input.txt");
+    std::vector<Block> blocks;
+    std::map<int, std::vector<Block>> blocks_by_zmax;
+
+    int row = 0;
+    while (file)
+    {
+        std::string line;
+        std::getline(file, line);
+        if (line.length() == 0)
+        {
+            continue;
+        }
+        blocks.push_back(Block(line, row));
+        row++;
+    }
+
+    std::sort(blocks.begin(), blocks.end());
+
+    for (auto b_it = blocks.begin(); b_it != blocks.end(); b_it++)
+    {
+        int candidate_z_support = 0;
+        for (auto z_rit = blocks_by_zmax.rbegin(); z_rit != blocks_by_zmax.rend(); z_rit++)
+        {
+            if (z_rit->first < candidate_z_support)
+            {
+                break;
+            }
+            for (const auto& fallen_block : z_rit->second)
+            {
+                if (fallen_block.xmax < b_it->xmin || fallen_block.xmin > b_it->xmax ||
+                    fallen_block.ymax < b_it->ymin || fallen_block.ymin > b_it->ymax)
+                {
+                    continue;
+                }
+
+                if (candidate_z_support == z_rit->first)
+                {
+                    b_it->supporters.push_back(fallen_block.id);
+                }
+                else
+                {
+                    candidate_z_support = z_rit->first;
+                    b_it->supporters.clear();
+                    b_it->supporters.push_back(fallen_block.id);
+                }
+            }
+        }
+
+        int z_shift = (b_it->zmin - candidate_z_support) - 1;
+        b_it->zmin -= z_shift;
+        b_it->zmax -= z_shift;
+
+        if (blocks_by_zmax.find(b_it->zmax) == blocks_by_zmax.end())
+        {
+            blocks_by_zmax[b_it->zmax] = std::vector<Block>({*b_it});
+        }
+        else
+        {
+            blocks_by_zmax[b_it->zmax].push_back(*b_it);
+        }
+    }
+
+    std::vector<uint8_t> can_remove(row, 1);
+
+    for (const auto& b : blocks)
+    {
+        if (b.supporters.size() == 1)
+        {
+            can_remove[b.supporters[0]] = 0;
+        }
+    }
+
+    int removable = 0;
+    for (auto i : can_remove)
+    {
+        if (i)
+        {
+            removable++;
+        }
+    }
+
+    return removable;
+}
+
+int main()
+{
+    using namespace std::chrono;
+    int output;
+    int n_iter = 10;
+    unsigned long total_us = 0;
+    for (int i = 0; i < n_iter; i++)
+    {
+        auto start = high_resolution_clock::now();
+        output = solution();
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        total_us += duration.count();
+    }
+    std::cout << output << std::endl;
+    std::cout << total_us/n_iter << " us" << std::endl;
+}
